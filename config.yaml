@@ -1,0 +1,2 @@
+gpu: true #Set this to true if you want to use the GPU
+output_folder: static/cartoonized_images
