@@ -22,7 +22,7 @@ with open('./config.yaml', 'r') as fd:
 
 sys.path.insert(0, './cartoon_filter_api/')
 
-wb_cartoonizer = WB_Cartoonize(os.path.abspath("white_box_cartoonizer/saved_models/"), opts['gpu'])
+wb_cartoonizer = WB_Cartoonize(os.path.abspath("saved_models/"), opts['gpu'])
 
 
 def convert_bytes_to_image(img_bytes):
