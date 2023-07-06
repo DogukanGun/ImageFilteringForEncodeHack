@@ -1,7 +1,4 @@
 import os
-import uuid
-import time
-import subprocess
 import sys
 
 import cv2
@@ -12,14 +9,12 @@ try:
 except ImportError:
     import tensorflow as tf
 
-import network
 import guided_filter
+import network
 
 
 class WB_Cartoonize:
     def __init__(self, weights_dir, gpu):
-        if not os.path.exists(weights_dir):
-            raise FileNotFoundError("Weights Directory not found, check path")
         self.load_model(weights_dir, gpu)
         print("Weights successfully loaded")
 

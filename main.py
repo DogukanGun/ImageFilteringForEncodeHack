@@ -2,13 +2,12 @@ import io
 import os
 import sys
 import uuid
-import requests
-import yaml
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI
 import cv2
-from cartoonize import WB_Cartoonize
 from PIL import Image
 import numpy as np
+
+from cartoonize import WB_Cartoonize
 
 app = FastAPI()
 
@@ -17,10 +16,12 @@ app = FastAPI()
 def read_root():
     return {"Hello": "World"}
 
-with open('./config.yaml', 'r') as fd:
-    opts = yaml.safe_load(fd)
 
-sys.path.insert(0, './cartoon_filter_api/')
+opts = dict()
+opts["gpu"] = True
+opts["output_folder"] = "static/cartoonized_images"
+
+sys.path.insert(0, '')
 
 wb_cartoonizer = WB_Cartoonize(os.path.abspath("saved_models/"), opts['gpu'])
 
@@ -48,10 +49,9 @@ def convert_bytes_to_image(img_bytes):
 
 
 @app.post("/cartoonize")
-async def cartoonize(file: UploadFile = File()):
-    image_data = await file.read()
+async def cartoonize(file: str):
 
-    image = convert_bytes_to_image(image_data)
+    image = convert_bytes_to_image(file.encode("utf-8"))
 
     img_name = str(uuid.uuid4())
 
@@ -59,4 +59,3 @@ async def cartoonize(file: UploadFile = File()):
 
     cartoonized_img_name = os.path.join(opts['CARTOONIZED_FOLDER'], img_name + ".jpg")
     cv2.imwrite(cartoonized_img_name, cv2.cvtColor(cartoon_image, cv2.COLOR_RGB2BGR))
-
