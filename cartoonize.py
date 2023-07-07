@@ -79,7 +79,7 @@ class WB_Cartoonize:
 if __name__ == '__main__':
     gpu = len(sys.argv) < 2 or sys.argv[1] != '--cpu'
     wbc = WB_Cartoonize(os.path.abspath('saved_models'), gpu)
-    img = cv2.imread('test_images/china6.jpg')
+    img = cv2.imread('image.png')
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     cartoon_image = wbc.infer(img)
     import matplotlib.pyplot as plt

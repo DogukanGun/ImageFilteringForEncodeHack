@@ -1,15 +1,37 @@
+import base64
 import io
 import os
 import sys
-import uuid
-from fastapi import FastAPI
+from urllib import request
+
+import helius
+import ipfshttpclient
+from fastapi import FastAPI, HTTPException
 import cv2
 from PIL import Image
 import numpy as np
+from fastapi.middleware.cors import CORSMiddleware
+from jsonify.convert import jsonify
 
 from cartoonize import WB_Cartoonize
+from model import CartoonizeRequest
 
 app = FastAPI()
+
+origins = [
+    "http://localhost",
+    "http://localhost:8000",
+    "http://localhost:3000",
+    # Add more allowed origins as needed
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/")
@@ -48,14 +70,37 @@ def convert_bytes_to_image(img_bytes):
     return image
 
 
+def convert_base64_to_image(base64_string):
+    # Remove the data:image/png;base64 prefix
+    base64_string = base64_string.replace("data:image/png;base64,", "")
+
+    # Decode the base64 string using urlsafe_b64decode
+    image_bytes = base64.urlsafe_b64decode(base64_string)
+
+    # Create a BytesIO object
+    image_buffer = io.BytesIO(image_bytes)
+
+    # Open the image using PIL
+    image = Image.open(image_buffer)
+
+    # Save the image to a file (optional)
+    image.save("image.png")
+
+    return image
+
+
 @app.post("/cartoonize")
-async def cartoonize(file: str):
-
-    image = convert_bytes_to_image(file.encode("utf-8"))
-
-    img_name = str(uuid.uuid4())
-
-    cartoon_image = wb_cartoonizer.infer(image)
-
-    cartoonized_img_name = os.path.join(opts['CARTOONIZED_FOLDER'], img_name + ".jpg")
-    cv2.imwrite(cartoonized_img_name, cv2.cvtColor(cartoon_image, cv2.COLOR_RGB2BGR))
+async def cartoonize(request: CartoonizeRequest):
+    try:
+        convert_base64_to_image(request.file)
+        img = cv2.imread('image.png')
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        cartoon_image = wb_cartoonizer.infer(img)
+        image = Image.fromarray(cartoon_image)
+        image.save("image.png")
+        with open("image.png", "rb") as image_file:
+            data = base64.b64encode(image_file.read())
+            return data
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail="Internal error")

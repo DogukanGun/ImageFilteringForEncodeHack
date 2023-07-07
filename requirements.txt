@@ -11,3 +11,6 @@ Pillow~=10.0.0
 fastapi
 uvicorn
 python-multipart
+ipfshttpclient
+helius
+jsonify
